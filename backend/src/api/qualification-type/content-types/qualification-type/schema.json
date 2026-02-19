@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "qualification_types",
+  "info": {
+    "singularName": "qualification-type",
+    "pluralName": "qualification-types",
+    "displayName": "QualificationTypes"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "icon": {
+      "type": "string",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "order": {
+      "type": "integer"
+    },
+    "qualifications": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::qualification.qualification",
+      "mappedBy": "qualificationType"
+    }
+  }
+}

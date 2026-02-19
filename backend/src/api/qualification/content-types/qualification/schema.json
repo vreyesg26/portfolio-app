@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "qualifications",
+  "info": {
+    "singularName": "qualification",
+    "pluralName": "qualifications",
+    "displayName": "Qualifications"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "text",
+      "required": true
+    },
+    "institution": {
+      "type": "string",
+      "required": true
+    },
+    "dateInfo": {
+      "type": "text",
+      "required": true
+    },
+    "qualificationType": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::qualification-type.qualification-type",
+      "inversedBy": "qualifications"
+    },
+    "order": {
+      "type": "integer",
+      "required": true
+    }
+  }
+}

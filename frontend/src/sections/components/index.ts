@@ -1,0 +1,8 @@
+export { SkillsSection } from "./SkillsSection";
+export { HomeLeft } from "./HomeLeft";
+export { HomeRight } from "./HomeRight";
+export { ContactForm } from "./ContactForm";
+export { Projects } from "./Projects";
+export { Qualifications } from "./Qualifications";
+export { Services } from "./Services";
+export { Testimonial } from "./Testimonial";

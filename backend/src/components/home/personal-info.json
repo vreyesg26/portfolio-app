@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_home_personal_infos",
+  "info": {
+    "displayName": "PersonalInfo",
+    "icon": "house"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "richtext",
+      "required": true
+    }
+  },
+  "config": {}
+}

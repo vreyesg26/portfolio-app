@@ -1,0 +1,30 @@
+{
+  "kind": "singleType",
+  "collectionName": "contacts",
+  "info": {
+    "singularName": "contact",
+    "pluralName": "contacts",
+    "displayName": "Contact"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Contact": {
+      "type": "dynamiczone",
+      "components": [
+        "contact.talk-to-me",
+        "contact.write-me"
+      ]
+    },
+    "icon": {
+      "type": "string",
+      "required": true
+    },
+    "buttonLabel": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

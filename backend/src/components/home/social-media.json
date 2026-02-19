@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_home_social_medias",
+  "info": {
+    "displayName": "SocialMedia",
+    "icon": "oneToMany"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "config": {}
+}

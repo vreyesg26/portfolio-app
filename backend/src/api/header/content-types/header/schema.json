@@ -1,0 +1,23 @@
+{
+  "kind": "singleType",
+  "collectionName": "headers",
+  "info": {
+    "singularName": "header",
+    "pluralName": "headers",
+    "displayName": "Header"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "NavLinks": {
+      "type": "component",
+      "component": "links.nav-links",
+      "repeatable": true
+    },
+    "logoName": {
+      "type": "string"
+    }
+  }
+}

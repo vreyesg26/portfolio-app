@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_contact_contact_infos",
+  "info": {
+    "displayName": "ContactInfo"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

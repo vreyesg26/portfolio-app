@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_contact_write_mes",
+  "info": {
+    "displayName": "WriteMe"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "ContactForm": {
+      "type": "component",
+      "component": "contact.contact-form",
+      "repeatable": true
+    }
+  },
+  "config": {}
+}

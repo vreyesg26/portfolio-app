@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_contact_talk_to_mes",
+  "info": {
+    "displayName": "TalkToMe"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "ContactInfo": {
+      "type": "component",
+      "component": "contact.contact-info",
+      "repeatable": true
+    }
+  },
+  "config": {}
+}
