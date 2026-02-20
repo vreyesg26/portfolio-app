@@ -31,7 +31,7 @@ export const ContactForm = ({ title, subtitle }: SectionTypes) => {
 
           <div className="contact__info">
             {contactFormData?.Contact[0]?.ContactInfo?.map((data) => (
-              <div className="contact__data">
+              <div className="contact__data" key={data?.id}>
                 <span className="contact__data-title">{data?.label}</span>
                 <span className="contact__data-info">{data?.value}</span>
                 {data?.url ? (
@@ -57,6 +57,7 @@ export const ContactForm = ({ title, subtitle }: SectionTypes) => {
           <form action="" className="contact__form" id="contact-form">
             {contactFormData?.Contact[1]?.ContactForm?.map((formInputs) => (
               <div
+                key={formInputs?.id}
                 className={`contact__form-div ${
                   formInputs?.longText ? "contact__form-area" : ""
                 }`}
