@@ -103,7 +103,7 @@ export interface LinksNavLinks extends Struct.ComponentSchema {
 }
 
 declare module '@strapi/strapi' {
-  export module Public {
+  export namespace Public {
     export interface ComponentSchemas {
       'contact.contact-form': ContactContactForm;
       'contact.contact-info': ContactContactInfo;
