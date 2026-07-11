@@ -13,15 +13,9 @@ import { useStrapi } from "../hooks/useStrapi";
 
 const HomeSkeleton = () => (
   <div className="home__container container grid section__border">
-    <div className="home__info">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div className="skeleton-lines" key={i}>
-          <Skeleton width="55%" height="0.7rem" />
-          <Skeleton width="85%" height="1rem" />
-        </div>
-      ))}
-    </div>
-
+    {/* Mismo orden en el DOM que el contenido real: home__data PRIMERO. Así en
+        móvil se apila igual (foto arriba, info debajo) y en desktop las reglas
+        de `order` del CSS lo recolocan en las 3 columnas. */}
     <div className="home__data grid">
       <div className="skeleton-stack">
         <Skeleton width="70%" height="1.8rem" />
@@ -37,6 +31,15 @@ const HomeSkeleton = () => (
           <Skeleton key={i} width="1.4rem" height="1.4rem" radius="50%" />
         ))}
       </div>
+    </div>
+
+    <div className="home__info">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div className="skeleton-lines" key={i}>
+          <Skeleton width="55%" height="0.7rem" />
+          <Skeleton width="85%" height="1rem" />
+        </div>
+      ))}
     </div>
 
     <div className="home__info">
