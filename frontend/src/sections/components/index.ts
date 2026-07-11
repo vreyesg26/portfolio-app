@@ -6,3 +6,5 @@ export { Projects } from "./Projects";
 export { Qualifications } from "./Qualifications";
 export { Services } from "./Services";
 export { Testimonial } from "./Testimonial";
+export { Skeleton } from "./Skeleton";
+export { SectionError } from "./SectionError";

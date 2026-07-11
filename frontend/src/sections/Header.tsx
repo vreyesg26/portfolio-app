@@ -6,23 +6,14 @@ import {
   ICON_THEME_CLASS,
 } from "../utils/constants";
 import type { NavLinksTypes } from "../types/types";
-import { getStrapiData } from "../lib/strapi";
+import { useStrapi } from "../hooks/useStrapi";
 
 export const Header = () => {
-  const [links, setLinks] = useState<NavLinksTypes | null>(null);
+  const { data: links } = useStrapi<NavLinksTypes>(headerQuery);
   const [activeLink, setActiveLink] = useState("home");
   const [isDark, setIsDark] = useState(getInitialIsDark);
   const [bgHeader, setBgHeader] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    async function fetchLinks() {
-      const linksData = await getStrapiData(headerQuery);
-      setLinks(linksData);
-    }
-
-    fetchLinks();
-  }, []);
 
   useEffect(() => {
     document.body.classList.toggle(DARK_THEME_CLASS, isDark);
@@ -41,33 +32,33 @@ export const Header = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Scroll spy: marca como activo el enlace de la sección visible, igual que
+  // el portafolio original (assets/js/main.js -> scrollActive). Consultamos las
+  // secciones en vivo dentro del handler para que funcione aunque se rendericen
+  // de forma asíncrona (datos de Strapi).
   useEffect(() => {
-    const sections = links?.NavLinks?.map((item) =>
-      document.getElementById(item.slug)
-    ).filter(Boolean) as HTMLElement[];
+    const scrollActive = () => {
+      const scrollY = window.scrollY;
+      let current = "";
 
-    if (!sections?.length) return;
+      document
+        .querySelectorAll<HTMLElement>("main section[id]")
+        .forEach((section) => {
+          const sectionTop = section.offsetTop - 58;
+          const sectionHeight = section.offsetHeight;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort(
-            (a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0)
-          )[0];
+          if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+            current = section.id;
+          }
+        });
 
-        if (visible?.target?.id) setActiveLink(visible.target.id);
-      },
-      {
-        root: null,
-        rootMargin: "-58px 0px -60% 0px",
-        threshold: [0.1, 0.25, 0.5, 0.75],
-      }
-    );
+      setActiveLink(current);
+    };
 
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, [links?.NavLinks]);
+    scrollActive();
+    window.addEventListener("scroll", scrollActive, { passive: true });
+    return () => window.removeEventListener("scroll", scrollActive);
+  }, []);
 
   return (
     <header className={`header ${bgHeader ? "bg-header" : ""}`} id="header">

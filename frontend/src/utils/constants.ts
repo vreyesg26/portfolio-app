@@ -1,31 +1,94 @@
+import qs from "qs";
+
+// Construye la query string de Strapi a partir de un objeto.
+// `encodeValuesOnly` deja los corchetes de las claves sin codificar (Strapi los
+// necesita literales) y solo codifica los valores.
+const buildQuery = (endpoint: string, params: object) =>
+  `${endpoint}?${qs.stringify(params, { encodeValuesOnly: true })}`;
+
 // Strapi endpoints constants
-export const headerQuery = "header?fields[0]=logoName&populate[NavLinks]=*";
+export const headerQuery = buildQuery("header", {
+  fields: ["logoName"],
+  populate: { NavLinks: "*" },
+});
 
-export const biographyQuery =
-  "biography?fields[0]=presentation&populate[HomeLeft]=*&populate[HomeRight]=*&populate[SocialMediaLinks]=*&populate[photo][fields][0]=url";
+export const biographyQuery = buildQuery("biography", {
+  fields: ["presentation"],
+  populate: {
+    HomeLeft: "*",
+    HomeRight: "*",
+    SocialMediaLinks: "*",
+    photo: { fields: ["url"] },
+  },
+});
 
-export const skillsQuery =
-  "technology-categories?fields[0]=title&fields[1]=slug&fields[2]=icon&sort[0]=order:asc&populate[technologies][fields][0]=title&populate[technologies][fields][1]=level&populate[technologies][populate][icon][fields][0]=url";
+export const skillsQuery = buildQuery("technology-categories", {
+  fields: ["title", "slug", "icon"],
+  sort: ["order:asc"],
+  populate: {
+    technologies: {
+      fields: ["title", "level"],
+      populate: { icon: { fields: ["url"] } },
+    },
+  },
+});
 
-export const qualificationsQuery =
-  "qualification-types?fields[0]=title&fields[1]=icon&sort[0]=order:asc&populate[qualifications][fields][0]=title&populate[qualifications][fields][1]=institution&populate[qualifications][fields][2]=dateInfo&populate[qualifications][sort][0]=order:desc";
+export const qualificationsQuery = buildQuery("qualification-types", {
+  fields: ["title", "icon"],
+  sort: ["order:asc"],
+  populate: {
+    qualifications: {
+      fields: ["title", "institution", "dateInfo"],
+      sort: ["order:desc"],
+    },
+  },
+});
 
-export const servicesQuery =
-  "services?fields[0]=icon&fields[1]=title&fields[2]=description";
+export const servicesQuery = buildQuery("services", {
+  fields: ["icon", "title", "description"],
+});
 
-export const projectsQuery =
-  "projects?fields[0]=name&fields[1]=technologies&fields[2]=url&populate[cover][fields][0]=url";
+export const projectsQuery = buildQuery("projects", {
+  fields: ["name", "technologies", "url"],
+  populate: { cover: { fields: ["url"] } },
+});
 
-export const testimonialsQuery =
-  "testimonials?fields[0]=description&fields[1]=clientName";
+export const testimonialsQuery = buildQuery("testimonials", {
+  fields: ["description", "clientName"],
+});
 
-export const contactFormQuery = "contact?fields[0]=buttonLabel&fields[1]=icon&populate[Contact][populate]=*";
+export const contactFormQuery = buildQuery("contact", {
+  fields: ["buttonLabel", "icon"],
+  populate: { Contact: { populate: "*" } },
+});
 
-export const sectionsQuery =
-  "section-titles?fields[0]=key&fields[1]=title&fields[2]=subtitle&sort[0]=order:asc";
+export const sectionsQuery = buildQuery("section-titles", {
+  fields: ["key", "title", "subtitle"],
+  sort: ["order:asc"],
+});
 
-export const footerQuery =
-  "footer?fields[0]=logoName&fields[1]=description&populate[FooterLinks][fields][0]=slug&populate[FooterLinks][fields][1]=label&populate[SocialMedia][fields][0]=*";
+export const footerQuery = buildQuery("footer", {
+  fields: ["logoName", "description"],
+  populate: {
+    FooterLinks: { fields: ["slug", "label"] },
+    SocialMedia: { fields: ["*"] },
+  },
+});
+
+// Todas las queries del portafolio, para precargarlas al arrancar (prefetch)
+// y evitar el waterfall de las secciones que dependen de section-titles.
+export const PORTFOLIO_QUERIES = [
+  headerQuery,
+  biographyQuery,
+  sectionsQuery,
+  skillsQuery,
+  qualificationsQuery,
+  servicesQuery,
+  projectsQuery,
+  testimonialsQuery,
+  contactFormQuery,
+  footerQuery,
+];
 
 //Dark & Light mode constants
 export const DARK_THEME_CLASS = "dark-theme";

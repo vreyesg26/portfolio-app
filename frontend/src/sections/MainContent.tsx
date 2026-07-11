@@ -1,65 +1,119 @@
-import { useState, useEffect } from "react";
 import { shapeCircle, shapeWaves } from "../assets";
-import { HomeLeft, HomeRight } from "./components";
+import { HomeLeft, HomeRight, Skeleton, SectionError } from "./components";
 import type {
   BiographyTypes,
   SectionKey,
   SectionTitlesTypes,
 } from "../types/types";
-import { getStrapiData, getStrapiImages } from "../lib/strapi";
+import { getStrapiImages } from "../lib/strapi";
 import { biographyQuery, sectionsQuery } from "../utils/constants";
 import { SECTION_COMPONENTS } from "./sectionRegistry";
+import { useScrollReveal } from "../hooks/useScrollReveal";
+import { useStrapi } from "../hooks/useStrapi";
+
+const HomeSkeleton = () => (
+  <div className="home__container container grid section__border">
+    <div className="home__info">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div className="skeleton-lines" key={i}>
+          <Skeleton width="55%" height="0.7rem" />
+          <Skeleton width="85%" height="1rem" />
+        </div>
+      ))}
+    </div>
+
+    <div className="home__data grid">
+      <div className="skeleton-stack">
+        <Skeleton width="70%" height="1.8rem" />
+        <Skeleton width="55%" height="1.8rem" />
+      </div>
+
+      <div className="home__blob grid">
+        <div className="home__perfil skeleton" />
+      </div>
+
+      <div className="home__social">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} width="1.4rem" height="1.4rem" radius="50%" />
+        ))}
+      </div>
+    </div>
+
+    <div className="home__info">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div className="skeleton-lines" key={i}>
+          <Skeleton width="60%" height="0.7rem" />
+          <Skeleton width="35%" height="1.6rem" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 export const MainContent = () => {
-  const [sections, setSections] = useState<SectionTitlesTypes[]>([]);
-  const [biography, setBiography] = useState<BiographyTypes | null>(null);
+  const { data: sections } = useStrapi<SectionTitlesTypes[]>(sectionsQuery);
+  const {
+    data: biography,
+    loading: biographyLoading,
+    error: biographyError,
+    refetch: refetchBiography,
+  } = useStrapi<BiographyTypes>(biographyQuery);
 
-  useEffect(() => {
-    async function fetchInfo() {
-      const sectionData = await getStrapiData(sectionsQuery);
-      const biographyData = await getStrapiData(biographyQuery);
-      setSections(sectionData);
-      setBiography(biographyData);
-    }
-
-    fetchInfo();
-  }, []);
+  useScrollReveal(
+    [
+      { target: ".home__data" },
+      {
+        target: ".home__info div",
+        options: { origin: "bottom" },
+        stagger: { base: 600, step: 100 },
+      },
+    ],
+    !!biography
+  );
 
   return (
     <main className="main">
       <section className="home section" id="home">
-        <div className="home__container container grid section__border">
-          <div className="home__data grid">
-            <h1 className="home__title">{biography?.presentation}</h1>
+        {biographyError ? (
+          <div className="home__container container grid section__border">
+            <SectionError onRetry={refetchBiography} />
+          </div>
+        ) : biographyLoading ? (
+          <HomeSkeleton />
+        ) : (
+          <div className="home__container container grid section__border">
+            <div className="home__data grid">
+              <h1 className="home__title">{biography?.presentation}</h1>
 
-            <div className="home__blob grid">
-              <div className="home__perfil">
-                <img
-                  src={getStrapiImages(biography?.photo?.url ?? null)}
-                  alt="Home profile"
-                />
+              <div className="home__blob grid">
+                <div className="home__perfil">
+                  <img
+                    src={getStrapiImages(biography?.photo?.url)}
+                    alt="Home profile"
+                  />
+                </div>
+
+                <img src={shapeWaves} alt="" className="home__shape-waves" />
+                <img src={shapeCircle} alt="" className="home__shape-circle" />
               </div>
 
-              <img src={shapeWaves} alt="" className="home__shape-waves" />
-              <img src={shapeCircle} alt="" className="home__shape-circle" />
+              <ul className="home__social">
+                {biography?.SocialMediaLinks?.map((link) => (
+                  <a
+                    key={link?.id}
+                    href={link?.url}
+                    target="_blank"
+                    className="home__social-link"
+                  >
+                    <i className={`ri-${link?.icon}`}></i>
+                  </a>
+                ))}
+              </ul>
             </div>
-
-            <ul className="home__social">
-              {biography?.SocialMediaLinks?.map((link) => (
-                <a
-                  key={link?.id}
-                  href={link?.url}
-                  target="_blank"
-                  className="home__social-link"
-                >
-                  <i className={`ri-${link?.icon}`}></i>
-                </a>
-              ))}
-            </ul>
+            <HomeLeft homeData={biography?.HomeLeft ?? []} />
+            <HomeRight homeData={biography?.HomeRight ?? []} />
           </div>
-          <HomeLeft homeData={biography?.HomeLeft ?? []} />
-          <HomeRight homeData={biography?.HomeRight ?? []} />
-        </div>
+        )}
       </section>
 
       {/* Portfolio sections mapping */}

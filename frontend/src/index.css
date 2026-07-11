@@ -203,6 +203,102 @@ body.dark-theme {
   overflow: hidden; /* For animation */
 }
 
+/*=============== SKELETON (loading) & SECTION ERROR ===============*/
+.skeleton {
+  display: block;
+  background-color: var(--container-color);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    hsla(0, 0%, 100%, 0.09),
+    transparent
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Apila y centra líneas de skeleton (nombre, subtítulo, etc.) */
+.skeleton-stack {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+}
+
+/* Apila líneas de skeleton alineadas a la izquierda */
+.skeleton-lines {
+  display: grid;
+  gap: 0.6rem;
+}
+
+/* El blob de la foto usa `background: gradient` (shorthand), que ganaría al
+   .skeleton. Con más especificidad forzamos el shimmer también aquí. */
+.home__perfil.skeleton {
+  background-color: var(--container-color);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    hsla(0, 0%, 100%, 0.09),
+    transparent
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+}
+
+.section__error {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.section__error-text {
+  font-family: var(--title-font);
+  color: var(--text-color-light);
+  font-size: var(--normal-font-size);
+}
+
+.section__error-btn {
+  display: inline-flex;
+  align-items: center;
+  column-gap: 0.5rem;
+  cursor: pointer;
+  background: none;
+  color: var(--title-color);
+  font-size: var(--small-font-size);
+  font-family: var(--body-font);
+  border: 1px solid var(--title-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: opacity 0.3s;
+}
+
+.section__error-btn:hover {
+  opacity: 0.7;
+}
+
+.section__error-btn i {
+  font-size: 1rem;
+  transition: transform 0.4s;
+}
+
+.section__error-btn:hover i {
+  transform: rotate(180deg);
+}
+
 /*=============== HEADER & NAV ===============*/
 .header {
   width: 100%;
@@ -547,7 +643,7 @@ body.dark-theme {
 
 /*=============== SERVICES ===============*/
 .services__container {
-  row-gap: 2.5rem;
+  row-gap: 3.5rem;
   justify-content: center;
 }
 
@@ -648,9 +744,12 @@ body.dark-theme {
 }
 
 /* Swiper class */
-.projects__container .swiper-button-prev::after,
-.projects__container .swiper-button-next::after {
-  content: '' !important;
+/* Swiper 12 inyecta un <svg class="swiper-navigation-icon"> dentro de cada
+   botón (navigation.addIcons). Lo ocultamos para dejar solo los iconos
+   remixicon <i>, igual que en el portafolio original. */
+.projects__container .swiper-button-prev .swiper-navigation-icon,
+.projects__container .swiper-button-next .swiper-navigation-icon {
+  display: none;
 }
 
 .projects__container .swiper-button-prev,
@@ -724,10 +823,9 @@ body.dark-theme {
   margin-bottom: 4rem;
 }
 
-.testimonial__container .swiper-button-prev::after,
-.testimonial__container .swiper-button-next::after {
-  content: none !important;
-  display: none !important;
+.testimonial__container .swiper-button-prev .swiper-navigation-icon,
+.testimonial__container .swiper-button-next .swiper-navigation-icon {
+  display: none;
 }
 
 .testimonial__container .swiper-button-prev,

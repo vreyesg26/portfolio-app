@@ -184,3 +184,16 @@ interface ContactInfo {
   value: string;
   url: null | string;
 }
+
+export type UseStrapiResult<T> = {
+  data: T | null;
+  loading: boolean;
+  error: Error | null;
+  refetch: () => void;
+};
+
+export type FetchState<T> = {
+  data: T | null;
+  error: Error | null;
+  query: string | null;
+};

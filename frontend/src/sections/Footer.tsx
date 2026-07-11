@@ -1,20 +1,13 @@
-import { useEffect, useState } from "react";
 import type { FooterTypes } from "../types/types";
-import { getStrapiData } from "../lib/strapi";
 import { footerQuery } from "../utils/constants";
+import { useScrollReveal } from "../hooks/useScrollReveal";
+import { useStrapi } from "../hooks/useStrapi";
 
 export const Footer = () => {
   const date = new Date();
-  const [footer, setFooter] = useState<FooterTypes | null>(null);
+  const { data: footer } = useStrapi<FooterTypes>(footerQuery);
 
-  useEffect(() => {
-    async function fetchFooter() {
-      const footerData = await getStrapiData(footerQuery);
-      setFooter(footerData);
-    }
-
-    fetchFooter();
-  }, []);
+  useScrollReveal([{ target: ".footer__container" }], !!footer);
 
   return (
     <footer className="footer">
