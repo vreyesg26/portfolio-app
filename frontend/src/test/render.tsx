@@ -25,6 +25,10 @@ export type Seed = readonly [query: string, data: unknown];
 
 /** Renderiza `ui` con la caché de React Query ya sembrada: sin red. */
 export function renderWithData(ui: ReactElement, seeds: Seed[]) {
+  // Una consulta sin sembrar fallaría aquí en lugar de llegar al dataset real.
+  vi.spyOn(client, "fetch").mockImplementation((query: string) => {
+    throw new Error(`Consulta sin sembrar en renderWithData: ${query}`);
+  });
   const queryClient = newClient();
   for (const [query, data] of seeds) {
     queryClient.setQueryData(["sanity", query], data);

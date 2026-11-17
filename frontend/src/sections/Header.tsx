@@ -68,7 +68,7 @@ export const Header = () => {
           className="nav__logo"
           onClick={() => setIsMenuOpen(false)}
         >
-          Victor
+          {links?.logoName ?? "Victor"}
         </a>
 
         <div

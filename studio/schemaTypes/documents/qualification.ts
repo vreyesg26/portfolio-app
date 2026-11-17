@@ -31,4 +31,6 @@ export const qualification = defineType({
       validation: (rule) => rule.required(),
     }),
   ],
+  // `title` es `text`: el preview automático solo mira campos `string`.
+  preview: {select: {title: 'title'}},
 })

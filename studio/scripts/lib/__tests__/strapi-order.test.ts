@@ -1,4 +1,4 @@
-import {copyFileSync, mkdtempSync, rmSync} from 'node:fs'
+import {copyFileSync, existsSync, mkdtempSync, rmSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import {join, resolve} from 'node:path'
 import {DatabaseSync} from 'node:sqlite'
@@ -11,7 +11,19 @@ import {readTechnologyOrder} from '../strapi-order'
 // como lanzados desde la raíz del repositorio.
 const DB_PATH = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../../../backend/.tmp/data.db')
 
-describe('readTechnologyOrder', () => {
+// `backend/.tmp/data.db` está en .gitignore y `backend/` se elimina tras la
+// migración: sin la base, los tests que la leen se SALTAN (aparecen como
+// "skipped" en el resumen, no como aprobados) y se avisa por consola.
+const HAS_DB = existsSync(DB_PATH)
+if (!HAS_DB) {
+  console.warn(`[strapi-order] SALTADOS los tests con fixture: no existe ${DB_PATH}`)
+}
+
+test('falla con un mensaje claro si la base no existe', () => {
+  expect(() => readTechnologyOrder('/no/existe/data.db')).toThrow()
+})
+
+describe.skipIf(!HAS_DB)('readTechnologyOrder (con la base real de Strapi)', () => {
   test('devuelve el orden curado, no el orden de id', () => {
     const order = readTechnologyOrder(DB_PATH)
     // Verificado en la base real. La tabla puente tiene 68 filas (borrador +
@@ -55,10 +67,6 @@ describe('readTechnologyOrder', () => {
     expect(counts.get(5)).toBe(2)
     expect(counts.get(12)).toBe(2)
     expect(counts.get(13)).toBeUndefined()
-  })
-
-  test('falla con un mensaje claro si la base no existe', () => {
-    expect(() => readTechnologyOrder('/no/existe/data.db')).toThrow()
   })
 
   // En la base actual las filas borrador llevan por casualidad el mismo

@@ -782,6 +782,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  console.error(`\n${error instanceof Error ? error.message : String(error)}`)
+  console.error(error)
   process.exit(1)
 })

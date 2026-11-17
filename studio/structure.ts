@@ -13,6 +13,8 @@ const COLLECTIONS = [
   'testimonial',
 ] as const
 
+const ORDERED = ['service', 'project', 'testimonial', 'technology']
+
 const titleOf = (type: string): string =>
   type.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())
 
@@ -27,7 +29,15 @@ export const structure: StructureResolver = (S) =>
           .child(S.document().schemaType(type).documentId(type).title(titleOf(type))),
       ),
       S.divider(),
-      ...COLLECTIONS.map((type) =>
-        S.documentTypeListItem(type).title(titleOf(type)),
-      ),
+      ...COLLECTIONS.map((type) => {
+        const item = S.documentTypeListItem(type).title(titleOf(type))
+        // Los tipos con orden curado se listan por `order`, no por edición.
+        return ORDERED.includes(type)
+          ? item.child(
+              S.documentTypeList(type)
+                .title(titleOf(type))
+                .defaultOrdering([{field: 'order', direction: 'asc'}]),
+            )
+          : item
+      }),
     ])
