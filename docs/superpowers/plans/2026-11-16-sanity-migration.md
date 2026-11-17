@@ -795,10 +795,19 @@ De `constants.ts` se conservan **solo** `DARK_THEME_CLASS`, `ICON_THEME_CLASS` y
 Run: `cd frontend && pnpm vitest run && pnpm tsc -b && pnpm lint`
 Expected: PASS, sin errores de tipo ni de lint
 
-- [ ] **Step 6: Comprobar que no queda rastro de Strapi en el frontend**
+- [ ] **Step 6: Comprobar que no queda dependencia de Strapi en el frontend**
 
-Run: `grep -ri "strapi" frontend/src frontend/.env.example`
+Run: `grep -rniE "strapi" frontend/src frontend/.env.example --include='*.ts' --include='*.tsx' | grep -vE "^\S+:\s*(//|\*)"`
 Expected: sin resultados
+
+**El criterio es «ninguna dependencia de código», no «la palabra no aparece».** La primera
+versión de este paso era un `grep` desnudo, y empujó al implementador a reescribir comentarios
+que explicaban legítimamente *por qué* el código es como es —por ejemplo, que el sort anidado de
+las tecnologías existe porque en Strapi dependía de la tabla de unión—. Un criterio que obliga a
+degradar la documentación es un criterio mal escrito. Mencionar a Strapi en un comentario
+histórico es **deseable**: el historial de git lo nombrará para siempre, y un lector futuro
+necesita saber de dónde viene la rareza. Lo que no debe quedar son imports, identificadores,
+variables de entorno ni llamadas.
 
 - [ ] **Step 7: Comparar contra el Strapi local a ojo**
 
