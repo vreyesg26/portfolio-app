@@ -443,3 +443,199 @@ export type AllSanitySchemaTypes =
   | SanityAssetSourceData
   | SanityImageAsset
   | Geopoint;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: HEADER_QUERY
+// Query: *[_type == "header" && _id == "header"][0]{    logoName,    navLinks[]{_key, slug, label, icon}  }
+export type HEADER_QUERY_RESULT = {
+  logoName: string | null;
+  navLinks: Array<{
+    _key: string;
+    slug: string;
+    label: string;
+    icon: string | null;
+  }> | null;
+} | null;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: BIOGRAPHY_QUERY
+// Query: *[_type == "biography" && _id == "biography"][0]{    presentation,    photo{alt, "asset": asset->{_id, url, mimeType}},    homeLeft[]{_key, title, description},    homeRight[]{_key, title, description},    socialMediaLinks[]{_key, icon, url}  }
+export type BIOGRAPHY_QUERY_RESULT = {
+  presentation: string;
+  photo: {
+    alt: string | null;
+    asset: {
+      _id: string;
+      url: string;
+      mimeType: string;
+    } | null;
+  };
+  homeLeft: Array<{
+    _key: string;
+    title: string;
+    description: string;
+  }> | null;
+  homeRight: Array<{
+    _key: string;
+    title: string;
+    description: string;
+  }> | null;
+  socialMediaLinks: Array<{
+    _key: string;
+    icon: string;
+    url: string;
+  }> | null;
+} | null;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: SECTION_TITLES_QUERY
+// Query: *[_type == "sectionTitle"] | order(order asc){    "key": key.current,    title,    subtitle  }
+export type SECTION_TITLES_QUERY_RESULT = Array<{
+  key: string;
+  title: string;
+  subtitle: string;
+}>;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: SKILLS_QUERY
+// Query: *[_type == "technologyCategory"] | order(order asc){    _id,    title,    "slug": slug.current,    icon,    "technologies": *[_type == "technology" && references(^._id)] | order(order asc){      _id,      title,      level,      icon{alt, "asset": asset->{_id, url, mimeType}}    }  }
+export type SKILLS_QUERY_RESULT = Array<{
+  _id: string;
+  title: string | null;
+  slug: string | null;
+  icon: string | null;
+  technologies: Array<{
+    _id: string;
+    title: string;
+    level: "Advanced" | "Basic" | "Intermediate";
+    icon: {
+      alt: string | null;
+      asset: {
+        _id: string;
+        url: string;
+        mimeType: string;
+      } | null;
+    };
+  }>;
+}>;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: QUALIFICATIONS_QUERY
+// Query: *[_type == "qualificationType"] | order(order asc){    _id,    title,    icon,    "qualifications": *[_type == "qualification" && references(^._id)] | order(order desc){      _id,      title,      institution,      dateInfo    }  }
+export type QUALIFICATIONS_QUERY_RESULT = Array<{
+  _id: string;
+  title: string;
+  icon: string;
+  qualifications: Array<{
+    _id: string;
+    title: string;
+    institution: string;
+    dateInfo: string;
+  }>;
+}>;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: SERVICES_QUERY
+// Query: *[_type == "service"] | order(order asc){    _id,    icon,    title,    description  }
+export type SERVICES_QUERY_RESULT = Array<{
+  _id: string;
+  icon: string;
+  title: string;
+  description: string;
+}>;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: PROJECTS_QUERY
+// Query: *[_type == "project"] | order(order asc){    _id,    name,    technologies,    url,    cover{alt, "asset": asset->{_id, url, mimeType}}  }
+export type PROJECTS_QUERY_RESULT = Array<{
+  _id: string;
+  name: string;
+  technologies: string;
+  url: string;
+  cover: {
+    alt: string | null;
+    asset: {
+      _id: string;
+      url: string;
+      mimeType: string;
+    } | null;
+  };
+}>;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: TESTIMONIALS_QUERY
+// Query: *[_type == "testimonial"] | order(order asc){    _id,    description,    clientName  }
+export type TESTIMONIALS_QUERY_RESULT = Array<{
+  _id: string;
+  description: string;
+  clientName: string;
+}>;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: CONTACT_QUERY
+// Query: *[_type == "contact" && _id == "contact"][0]{    buttonLabel,    icon,    talkToMe{      icon,      title,      contactInfo[]{_key, label, value, url}    },    writeMe{      icon,      title,      fields[]{_key, label, placeholder, inputType, name, slug, longText}    }  }
+export type CONTACT_QUERY_RESULT = {
+  buttonLabel: string;
+  icon: string;
+  talkToMe: {
+    icon: string;
+    title: string;
+    contactInfo: Array<{
+      _key: string;
+      label: string;
+      value: string;
+      url: string | null;
+    }> | null;
+  } | null;
+  writeMe: {
+    icon: string;
+    title: string;
+    fields: Array<{
+      _key: string;
+      label: string;
+      placeholder: string;
+      inputType: string;
+      name: string;
+      slug: string;
+      longText: boolean;
+    }> | null;
+  } | null;
+} | null;
+
+// Source: ../frontend/src/lib/queries.ts
+// Variable: FOOTER_QUERY
+// Query: *[_type == "footer" && _id == "footer"][0]{    logoName,    description,    footerLinks[]{_key, slug, label},    socialMedia[]{_key, icon, url}  }
+export type FOOTER_QUERY_RESULT = {
+  logoName: string;
+  description: string;
+  footerLinks: Array<{
+    _key: string;
+    slug: string;
+    label: string;
+  }> | null;
+  socialMedia: Array<{
+    _key: string;
+    icon: string;
+    url: string;
+  }> | null;
+} | null;
+
+// Query TypeMap
+declare global {
+  interface SanityQueries {
+    '\n  *[_type == "header" && _id == "header"][0]{\n    logoName,\n    navLinks[]{_key, slug, label, icon}\n  }\n': HEADER_QUERY_RESULT;
+    '\n  *[_type == "biography" && _id == "biography"][0]{\n    presentation,\n    photo{alt, "asset": asset->{_id, url, mimeType}},\n    homeLeft[]{_key, title, description},\n    homeRight[]{_key, title, description},\n    socialMediaLinks[]{_key, icon, url}\n  }\n': BIOGRAPHY_QUERY_RESULT;
+    '\n  *[_type == "sectionTitle"] | order(order asc){\n    "key": key.current,\n    title,\n    subtitle\n  }\n': SECTION_TITLES_QUERY_RESULT;
+    '\n  *[_type == "technologyCategory"] | order(order asc){\n    _id,\n    title,\n    "slug": slug.current,\n    icon,\n    "technologies": *[_type == "technology" && references(^._id)] | order(order asc){\n      _id,\n      title,\n      level,\n      icon{alt, "asset": asset->{_id, url, mimeType}}\n    }\n  }\n': SKILLS_QUERY_RESULT;
+    '\n  *[_type == "qualificationType"] | order(order asc){\n    _id,\n    title,\n    icon,\n    "qualifications": *[_type == "qualification" && references(^._id)] | order(order desc){\n      _id,\n      title,\n      institution,\n      dateInfo\n    }\n  }\n': QUALIFICATIONS_QUERY_RESULT;
+    '\n  *[_type == "service"] | order(order asc){\n    _id,\n    icon,\n    title,\n    description\n  }\n': SERVICES_QUERY_RESULT;
+    '\n  *[_type == "project"] | order(order asc){\n    _id,\n    name,\n    technologies,\n    url,\n    cover{alt, "asset": asset->{_id, url, mimeType}}\n  }\n': PROJECTS_QUERY_RESULT;
+    '\n  *[_type == "testimonial"] | order(order asc){\n    _id,\n    description,\n    clientName\n  }\n': TESTIMONIALS_QUERY_RESULT;
+    '\n  *[_type == "contact" && _id == "contact"][0]{\n    buttonLabel,\n    icon,\n    talkToMe{\n      icon,\n      title,\n      contactInfo[]{_key, label, value, url}\n    },\n    writeMe{\n      icon,\n      title,\n      fields[]{_key, label, placeholder, inputType, name, slug, longText}\n    }\n  }\n': CONTACT_QUERY_RESULT;
+    '\n  *[_type == "footer" && _id == "footer"][0]{\n    logoName,\n    description,\n    footerLinks[]{_key, slug, label},\n    socialMedia[]{_key, icon, url}\n  }\n': FOOTER_QUERY_RESULT;
+  }
+}
+// Lets @sanity/client releases that predate the global registry read it too
+declare module "@sanity/client" {
+  interface SanityQueries extends globalThis.SanityQueries {}
+}

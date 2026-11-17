@@ -192,6 +192,8 @@ export type UseStrapiResult<T> = {
   refetch: () => void;
 };
 
+export type UseSanityResult<T> = UseStrapiResult<T>;
+
 export type FetchState<T> = {
   data: T | null;
   error: Error | null;
