@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import {
   DARK_THEME_CLASS,
   getInitialIsDark,
-  headerQuery,
   ICON_THEME_CLASS,
 } from "../utils/constants";
-import type { NavLinksTypes } from "../types/types";
-import { useStrapi } from "../hooks/useStrapi";
+import type { HEADER_QUERY_RESULT } from "../sanity.types";
+import { HEADER_QUERY } from "../lib/queries";
+import { useSanity } from "../hooks/useSanity";
 
 export const Header = () => {
-  const { data: links } = useStrapi<NavLinksTypes>(headerQuery);
+  const { data: links } = useSanity<HEADER_QUERY_RESULT>(HEADER_QUERY);
   const [activeLink, setActiveLink] = useState("home");
   const [isDark, setIsDark] = useState(getInitialIsDark);
   const [bgHeader, setBgHeader] = useState(false);
@@ -68,7 +68,7 @@ export const Header = () => {
           className="nav__logo"
           onClick={() => setIsMenuOpen(false)}
         >
-          Victor
+          {links?.logoName ?? "Victor"}
         </a>
 
         <div
@@ -76,7 +76,7 @@ export const Header = () => {
           id="nav-menu"
         >
           <ul className="nav__list grid">
-            {links?.NavLinks?.map((item) => (
+            {links?.navLinks?.map((item) => (
               <li className="nav__item" key={item.slug}>
                 <a
                   href={`#${item.slug}`}
@@ -88,7 +88,7 @@ export const Header = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <i className={`ri-${item.icon}`}></i> {item.label}
+                  <i className={item.icon ? `ri-${item.icon}` : undefined}></i> {item.label}
                 </a>
               </li>
             ))}

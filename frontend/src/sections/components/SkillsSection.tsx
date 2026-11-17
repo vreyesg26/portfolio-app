@@ -1,8 +1,9 @@
-import type { SectionTypes, TechnologyTypes } from "../../types/types";
-import { getStrapiImages } from "../../lib/strapi";
-import { skillsQuery } from "../../utils/constants";
+import type { SectionProps } from "../../types/types";
+import type { SKILLS_QUERY_RESULT } from "../../sanity.types";
+import { imageAlt, imageUrl } from "../../lib/image";
+import { SKILLS_QUERY } from "../../lib/queries";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
-import { useStrapi } from "../../hooks/useStrapi";
+import { useSanity } from "../../hooks/useSanity";
 import { Skeleton } from "./Skeleton";
 import { SectionError } from "./SectionError";
 
@@ -27,9 +28,9 @@ const SkillsSkeleton = () => (
   </>
 );
 
-export const SkillsSection = ({ title, subtitle }: SectionTypes) => {
+export const SkillsSection = ({ title, subtitle }: SectionProps) => {
   const { data, loading, error, refetch } =
-    useStrapi<TechnologyTypes[]>(skillsQuery);
+    useSanity<SKILLS_QUERY_RESULT>(SKILLS_QUERY);
   const skillsList = data ?? [];
 
   useScrollReveal(
@@ -60,17 +61,17 @@ export const SkillsSection = ({ title, subtitle }: SectionTypes) => {
           <SkillsSkeleton />
         ) : (
           skillsList.map((skills) => (
-            <div className="skills__content" key={skills?.id}>
+            <div className="skills__content" key={skills?._id}>
               <h3 className="skills__title">
-                <i className={`ri-${skills.icon}`}></i> {skills?.title}
+                <i className={skills.icon ? `ri-${skills.icon}` : undefined}></i> {skills?.title}
               </h3>
               <div className="skills__info">
                 {skills?.technologies?.map((technologies) => (
-                  <div className="skills__data" key={technologies?.id}>
+                  <div className="skills__data" key={technologies?._id}>
                     <div className="skills__blob">
                       <img
-                        src={getStrapiImages(technologies?.icon?.url)}
-                        alt="skills image"
+                        src={imageUrl(technologies?.icon)}
+                        alt={imageAlt(technologies?.icon, "skills image")}
                       />
                     </div>
 

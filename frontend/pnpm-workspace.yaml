@@ -1,2 +1,3 @@
-ignoredBuiltDependencies:
-  - scrollreveal
+allowBuilds:
+  esbuild: true
+  scrollreveal: false

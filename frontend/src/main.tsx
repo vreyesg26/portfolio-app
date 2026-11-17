@@ -2,8 +2,8 @@ import { App } from "./App.tsx";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { PORTFOLIO_QUERIES } from "./utils/constants";
-import { getStrapiData } from "./lib/strapi";
+import { PORTFOLIO_QUERIES } from "./lib/queries";
+import { client } from "./lib/sanity";
 import "./index.css";
 
 // Un único QueryClient para toda la app: administra la caché de las peticiones.
@@ -26,8 +26,8 @@ const queryClient = new QueryClient({
 // caché o en vuelo, eliminando el waterfall de 2 niveles.
 PORTFOLIO_QUERIES.forEach((query) => {
   queryClient.prefetchQuery({
-    queryKey: ["strapi", query],
-    queryFn: ({ signal }) => getStrapiData(query, signal),
+    queryKey: ["sanity", query],
+    queryFn: ({ signal }) => client.fetch(query, {}, { signal }),
   });
 });
 

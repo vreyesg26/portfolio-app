@@ -1,15 +1,15 @@
 import { shapeCircle, shapeWaves } from "../assets";
 import { HomeLeft, HomeRight, Skeleton, SectionError } from "./components";
+import type { SectionKey } from "../types/types";
 import type {
-  BiographyTypes,
-  SectionKey,
-  SectionTitlesTypes,
-} from "../types/types";
-import { getStrapiImages } from "../lib/strapi";
-import { biographyQuery, sectionsQuery } from "../utils/constants";
+  BIOGRAPHY_QUERY_RESULT,
+  SECTION_TITLES_QUERY_RESULT,
+} from "../sanity.types";
+import { imageAlt, imageUrl } from "../lib/image";
+import { BIOGRAPHY_QUERY, SECTION_TITLES_QUERY } from "../lib/queries";
 import { SECTION_COMPONENTS } from "./sectionRegistry";
 import { useScrollReveal } from "../hooks/useScrollReveal";
-import { useStrapi } from "../hooks/useStrapi";
+import { useSanity } from "../hooks/useSanity";
 
 const HomeSkeleton = () => (
   <div className="home__container container grid section__border">
@@ -54,13 +54,13 @@ const HomeSkeleton = () => (
 );
 
 export const MainContent = () => {
-  const { data: sections } = useStrapi<SectionTitlesTypes[]>(sectionsQuery);
+  const { data: sections } = useSanity<SECTION_TITLES_QUERY_RESULT>(SECTION_TITLES_QUERY);
   const {
     data: biography,
     loading: biographyLoading,
     error: biographyError,
     refetch: refetchBiography,
-  } = useStrapi<BiographyTypes>(biographyQuery);
+  } = useSanity<BIOGRAPHY_QUERY_RESULT>(BIOGRAPHY_QUERY);
 
   useScrollReveal(
     [
@@ -91,8 +91,8 @@ export const MainContent = () => {
               <div className="home__blob grid">
                 <div className="home__perfil">
                   <img
-                    src={getStrapiImages(biography?.photo?.url)}
-                    alt="Home profile"
+                    src={imageUrl(biography?.photo)}
+                    alt={imageAlt(biography?.photo, "Home profile")}
                   />
                 </div>
 
@@ -101,9 +101,9 @@ export const MainContent = () => {
               </div>
 
               <ul className="home__social">
-                {biography?.SocialMediaLinks?.map((link) => (
+                {biography?.socialMediaLinks?.map((link) => (
                   <a
-                    key={link?.id}
+                    key={link?._key}
                     href={link?.url}
                     target="_blank"
                     className="home__social-link"
@@ -113,8 +113,8 @@ export const MainContent = () => {
                 ))}
               </ul>
             </div>
-            <HomeLeft homeData={biography?.HomeLeft ?? []} />
-            <HomeRight homeData={biography?.HomeRight ?? []} />
+            <HomeLeft homeData={biography?.homeLeft ?? []} />
+            <HomeRight homeData={biography?.homeRight ?? []} />
           </div>
         )}
       </section>

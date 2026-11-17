@@ -1,11 +1,11 @@
-import type { FooterTypes } from "../types/types";
-import { footerQuery } from "../utils/constants";
+import type { FOOTER_QUERY_RESULT } from "../sanity.types";
+import { FOOTER_QUERY } from "../lib/queries";
 import { useScrollReveal } from "../hooks/useScrollReveal";
-import { useStrapi } from "../hooks/useStrapi";
+import { useSanity } from "../hooks/useSanity";
 
 export const Footer = () => {
   const date = new Date();
-  const { data: footer } = useStrapi<FooterTypes>(footerQuery);
+  const { data: footer } = useSanity<FOOTER_QUERY_RESULT>(FOOTER_QUERY);
 
   useScrollReveal([{ target: ".footer__container" }], !!footer);
 
@@ -16,8 +16,8 @@ export const Footer = () => {
         <p>{footer?.description}</p>
 
         <ul className="footer__list">
-          {footer?.FooterLinks?.map((link) => (
-            <li key={link?.id}>
+          {footer?.footerLinks?.map((link) => (
+            <li key={link?._key}>
               <a href={`#${link?.slug}`} className="footer__link">
                 {link?.label}
               </a>
@@ -26,9 +26,9 @@ export const Footer = () => {
         </ul>
 
         <ul className="footer__social">
-          {footer?.SocialMedia?.map((social) => (
+          {footer?.socialMedia?.map((social) => (
             <a
-              key={social?.id}
+              key={social?._key}
               href={social?.url}
               target="_blank"
               className="footer__social-link"
