@@ -12,7 +12,7 @@ El frontend Vite conserva su estructura, su React Query y sus estados de carga/e
 la capa de datos (10 queries REST → 10 queries GROQ) y los tipos, que pasan a generarse con
 `sanity typegen` en vez de escribirse a mano.
 
-**Tech Stack:** Sanity Studio v4, `@sanity/client`, `@sanity/image-url`, `groq`, GROQ,
+**Tech Stack:** Sanity Studio 6.23.0, `@sanity/client`, `@sanity/image-url`, `groq`, GROQ,
 `sanity typegen`; frontend Vite 7 + React 19 + TanStack Query v5 + pnpm; Vitest +
 React Testing Library (nuevos); Netlify para el frontend.
 
