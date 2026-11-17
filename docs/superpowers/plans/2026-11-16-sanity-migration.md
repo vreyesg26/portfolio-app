@@ -394,8 +394,11 @@ git commit -m "feat(studio): tipos de documento y estructura de singletons"
   export const SINGLETON_IDS: Record<'biography'|'contact'|'footer'|'header', string>
   export function mapAssetReference(strapiUrl: string, assetMap: Map<string,string>): {_type:'image', asset:{_type:'reference', _ref:string}, alt?:string}
   // strapi-order.ts
-  export function readTechnologyOrder(dbPath: string): Map<number, number>
+  export function readTechnologyOrder(dbPath: string): Map<string, number>
   ```
+  **Indexado por `document_id`, no por el `id` numérico**, porque es `documentId` lo que
+  devuelve la API REST de Strapi. Lee con `node:sqlite`, disponible de forma nativa en el
+  Node 22 de esta máquina: no hace falta añadir ninguna dependencia.
 
 Las funciones de red (subida de assets, escritura de documentos) viven en
 `migrate-from-strapi.ts` y **no se testean**; las puras viven en `lib/` y sí.
@@ -416,11 +419,20 @@ test('los singletons tienen _id fijo', () => {
 
 test('readTechnologyOrder devuelve el orden curado, no el orden de id', () => {
   const order = readTechnologyOrder('../backend/.tmp/data.db')
-  // verificado en la base real: posicion 10 -> id 54, 11 -> id 56, 12 -> id 59
-  expect(order.get(54)).toBe(10)
-  expect(order.get(56)).toBe(11)
-  expect(order.get(59)).toBe(12)
+  // Verificado en la base real. La tabla puente tiene 68 filas (borrador + publicado),
+  // asi que hay que FILTRAR a publicadas. Borrador y publicado comparten document_id.
+  // Posiciones 10-12 de "Frontend Development", ids publicados 55, 58 y 60:
+  expect(order.get('sap51k3w7pqzl60dybv5ya58')).toBe(10) // Material UI
+  expect(order.get('s3trc9bhijhiq82ibg9yedpb')).toBe(11) // Typescript
+  expect(order.get('aqv4vuva7yekfrjmaxb37xwa')).toBe(12) // Postman
   expect(order.size).toBe(34)
+})
+
+test('el orden es por categoria, no global', () => {
+  const order = readTechnologyOrder('../backend/.tmp/data.db')
+  // 5 categorias con 12, 12, 3, 3 y 4 tecnologias: varias comparten la posicion 1.
+  const ones = [...order.values()].filter((v) => v === 1)
+  expect(ones).toHaveLength(5)
 })
 
 test('mapAssetReference falla fuerte si el asset no está en el mapa', () => {
