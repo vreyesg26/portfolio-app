@@ -510,7 +510,8 @@ Expected: responde en `http://localhost:1337`
 
 - [ ] **Step 2: Ensayo en seco, ANTES de escribir nada**
 
-Run: `cd studio && pnpm tsx scripts/migrate-from-strapi.ts --dry-run`
+Run: `cd studio && pnpm sanity exec scripts/migrate-from-strapi.ts -- --dry-run`
+(`tsx` no está instalado y el script necesita `getCliClient` de `sanity/cli`)
 Expected: el pre-vuelo cuadra, el script imprime el plan completo y **no sube ningún asset ni
 escribe ningún documento**.
 
@@ -532,7 +533,7 @@ desde el diff:
 
 - [ ] **Step 3: Ejecutar la migración de verdad**
 
-Run: `cd studio && pnpm tsx scripts/migrate-from-strapi.ts`
+Run: `cd studio && pnpm sanity exec scripts/migrate-from-strapi.ts`
 Expected: el pre-vuelo cuadra y el script informa 68 documentos y 45 subidas (44 assets, por
 deduplicación de sha1)
 
@@ -542,13 +543,16 @@ Comprueba, vía GROQ contra el dataset real:
 - recuento por tipo, contra la tabla del diseño;
 - que las 2 referencias resuelven en los 40 documentos que las usan;
 - que las 34 tecnologías tienen `order` y que el orden coincide con `technologie_ord`;
-- que `biography.presentation` y los 2 `service.title` afectados **contienen `\n`**;
+- que los saltos de línea sobrevivieron: **1** `service.title` (`"UI/UX\nDesign"`), **2**
+  `service.description`, `biography.presentation` y 2 de los 3 `homeLeft[].description`
+  contienen `\n`. (El plan decía antes "los 2 `service.title` afectados": era falso, solo hay
+  uno con salto; verificado en el dataset migrado);
 - que las 45 URLs del mapa de assets devuelven HTTP 200, apuntando a **44** documentos
   `sanity.imageAsset` distintos.
 
 - [ ] **Step 5: Ejecutar la verificación**
 
-Run: `cd studio && pnpm tsx scripts/verify-migration.ts`
+Run: `cd studio && pnpm sanity exec scripts/verify-migration.ts`
 Expected: todas las comprobaciones en verde; salida distinta de cero si alguna falla
 
 - [ ] **Step 6: Revisar el contenido a ojo en el Studio**
