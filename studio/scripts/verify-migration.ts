@@ -19,16 +19,28 @@
  *      `technologie_ord` de `technologies_category_lnk` en la base de Strapi.
  *   4. Que los saltos de línea reales sobrevivieron: se renderizan con
  *      `white-space: pre-line` y un `\n` perdido se nota en pantalla.
- *   5. Que los 45 originales de `backend/public/uploads` están en el dataset
- *      (localizados por sha1, no por nombre), que son 44 documentos
- *      `sanity.imageAsset` distintos y que cada URL devuelve HTTP 200.
+ *   5. Que el dataset tiene 44 documentos `sanity.imageAsset`, que las 39
+ *      imágenes que el contenido referencia resuelven a un asset y que cada URL
+ *      devuelve HTTP 200; y, si `backend/public/uploads` sigue existiendo, que
+ *      los 45 originales están en el dataset (localizados por sha1, no por
+ *      nombre) y son esos mismos 44 assets.
  *
- * Las comprobaciones 3 y 5 leen `backend/`, igual que el script de migración:
- * el orden curado y los sha1 de origen no viven en ninguna otra parte. Cuando
- * `backend/` ya no exista, estas dos dejarán de poder ejecutarse; las otras
- * tres siguen valiendo.
+ * **Degradación cuando `backend/` ya no exista** (la tarea 10 lo borra): dos
+ * trozos leen de ahí, porque ni el orden curado ni los sha1 de origen viven en
+ * ninguna otra parte:
  *
- * Sale con código distinto de cero si algo no cuadra.
+ *   - la comprobación 3 entera necesita `backend/.tmp/data.db`;
+ *   - de la 5, solo el cruce con `backend/public/uploads` (45 originales, 44
+ *     assets por sha1, las 45 entradas del mapa con HTTP 200).
+ *
+ * Esos dos trozos **se saltan e imprimen `SALTADA`, sin abortar**, para que las
+ * comprobaciones 1, 2, 4 y la parte de la 5 que solo necesita el dataset sigan
+ * ejecutándose y valiendo. Al final se resume cuántas se saltaron: una salida
+ * con `SALTADA` **no** es una verificación completa, y conviene leerla como tal.
+ *
+ * Sale con código distinto de cero si algo no cuadra. Saltarse una comprobación
+ * no es un fallo, así que no cambia el código de salida: lo que lo cambia es que
+ * algo que sí se ha podido comprobar no cuadre.
  */
 import {createHash} from 'node:crypto'
 import {existsSync, readFileSync, readdirSync} from 'node:fs'
@@ -105,14 +117,25 @@ const UPLOADS_DIR = process.env.STRAPI_UPLOADS_DIR ?? join(REPO_ROOT, 'backend/p
 const STRAPI_DB_PATH = process.env.STRAPI_DB_PATH ?? join(REPO_ROOT, 'backend/.tmp/data.db')
 
 // ---------------------------------------------------------------------------
-// Acumulador de fallos
+// Acumuladores de fallos y de comprobaciones saltadas
 // ---------------------------------------------------------------------------
 
 const problems: string[] = []
+const skipped: string[] = []
 
 function check(condition: boolean, label: string, detail: string): void {
   console.log(`  ${condition ? 'ok   ' : 'FALLA'} ${label}`)
   if (!condition) problems.push(detail)
+}
+
+/**
+ * Deja constancia de una comprobación que no se puede hacer porque falta su
+ * fuente de datos. No es un fallo, pero sí tiene que verse: una verificación a
+ * medias que parece completa es peor que una que falla.
+ */
+function skip(label: string, reason: string): void {
+  console.log(`  SALTADA ${label}: ${reason}`)
+  skipped.push(`${label}: ${reason}`)
 }
 
 // ---------------------------------------------------------------------------
@@ -163,11 +186,13 @@ function newlinePaths(value: unknown, path: string): string[] {
   return []
 }
 
-/** Los 45 originales, con su sha1. */
-function readOriginalUploads(): {filename: string; sha1: string}[] {
-  if (!existsSync(UPLOADS_DIR)) {
-    throw new Error(`No existe ${UPLOADS_DIR}: define STRAPI_UPLOADS_DIR o ejecuta desde studio/.`)
-  }
+/**
+ * Los 45 originales, con su sha1, o `null` si el directorio ya no existe (lo
+ * borra la tarea 10). Devolver `null` en vez de lanzar es lo que deja que el
+ * resto de la verificación siga adelante.
+ */
+function readOriginalUploads(): {filename: string; sha1: string}[] | null {
+  if (!existsSync(UPLOADS_DIR)) return null
 
   return readdirSync(UPLOADS_DIR)
     .filter((name) => !name.startsWith('.'))
@@ -292,9 +317,14 @@ async function verifyTechnologyOrder(client: Client): Promise<void> {
   console.log('\n3. Orden curado de las tecnologías')
 
   if (!existsSync(STRAPI_DB_PATH)) {
-    throw new Error(
-      `No existe ${STRAPI_DB_PATH}, de donde sale el orden curado (columna technologie_ord).`,
+    // Sin la base de Strapi no hay con qué comparar: `technologie_ord` no vive
+    // en ninguna otra parte. Se salta y se sigue, para no llevarse por delante
+    // las comprobaciones 4 y 5, que no necesitan `backend/`.
+    skip(
+      'order == technologie_ord (34 tecnologías)',
+      `no existe ${STRAPI_DB_PATH}, de donde sale el orden curado`,
     )
+    return
   }
 
   const expectedOrder = readTechnologyOrder(STRAPI_DB_PATH)
@@ -402,10 +432,95 @@ function verifyNewlines(documents: SanityDocument[]): void {
 // 5. Assets
 // ---------------------------------------------------------------------------
 
-async function verifyAssets(client: Client): Promise<void> {
-  console.log('\n5. Assets')
+/** Una imagen que el contenido referencia, con el documento y campo que la usa. */
+interface ReferencedImage {
+  documentId: string
+  field: string
+  url: string | null
+}
 
+/** Una entrada del mapa `fichero de Strapi -> asset de Sanity`. */
+interface AssetMapEntry {
+  filename: string
+  assetId: string
+  url: string
+}
+
+/**
+ * Las imágenes que el contenido referencia de verdad: 34 iconos de
+ * `technology`, 4 portadas de `project` y la foto de `biography`.
+ *
+ * Se piden **una fila por documento**, con su `_id`, en vez de un array de
+ * URLs: así un asset que no resuelve deja un `url` nulo con nombre y apellidos
+ * en lugar de un hueco anónimo, y el fallo dice qué documento mirar.
+ */
+async function readReferencedImages(client: Client): Promise<ReferencedImage[]> {
+  const rows = await client.fetch<{
+    technologyIcons: {_id: string; url: string | null}[]
+    projectCovers: {_id: string; url: string | null}[]
+    biographyPhoto: {_id: string; url: string | null} | null
+  }>(
+    `{
+      "technologyIcons": *[_type == "technology" && !(_id in path("drafts.**"))]{_id, "url": icon.asset->url},
+      "projectCovers": *[_type == "project" && !(_id in path("drafts.**"))]{_id, "url": cover.asset->url},
+      "biographyPhoto": *[_id == "biography"][0]{_id, "url": photo.asset->url}
+    }`,
+  )
+
+  return [
+    ...rows.technologyIcons.map((row) => ({documentId: row._id, field: 'icon', url: row.url ?? null})),
+    ...rows.projectCovers.map((row) => ({documentId: row._id, field: 'cover', url: row.url ?? null})),
+    ...(rows.biographyPhoto
+      ? [{documentId: rows.biographyPhoto._id, field: 'photo', url: rows.biographyPhoto.url ?? null}]
+      : []),
+  ]
+}
+
+/**
+ * Cuántas imágenes de un campo resuelven a un asset.
+ *
+ * Se cuentan las URLs **no nulas**, no la longitud del array: hay una fila por
+ * documento salga o no el asset, así que comparar la longitud contra 34 o 4
+ * sería comparar el recuento de documentos consigo mismo (que ya mira la
+ * comprobación 1) y no se enteraría de un icono ausente.
+ */
+function checkReferencedField(
+  images: ReferencedImage[],
+  field: string,
+  label: string,
+  expected: number,
+): void {
+  const ofField = images.filter((image) => image.field === field)
+  const resolved = ofField.filter((image) => typeof image.url === 'string')
+  const broken = ofField.filter((image) => typeof image.url !== 'string')
+
+  check(
+    resolved.length === expected,
+    `${label} que resuelven a un asset: ${resolved.length}/${expected}`,
+    `${label}: ${resolved.length} de ${expected} resuelven; sin asset: ${
+      broken.map((image) => `${image.documentId}.${field}`).join(', ') || 'ninguno'
+    }`,
+  )
+}
+
+/**
+ * Reconstruye el mapa `fichero -> asset` cruzando los sha1 de
+ * `backend/public/uploads` con el dataset, y comprueba su forma: 45 entradas,
+ * 44 assets distintos.
+ *
+ * Devuelve `null` (y deja constancia del salto) si el directorio ya no existe.
+ */
+async function verifyAssetMap(client: Client): Promise<AssetMapEntry[] | null> {
   const uploads = readOriginalUploads()
+
+  if (uploads === null) {
+    skip(
+      `mapa de assets (${EXPECTED_UPLOADS} originales -> ${EXPECTED_ASSET_DOCUMENTS} assets por sha1)`,
+      `no existe ${UPLOADS_DIR}, así que no hay sha1 de origen con los que cruzar`,
+    )
+    return null
+  }
+
   check(
     uploads.length === EXPECTED_UPLOADS,
     `originales en backend/public/uploads: ${uploads.length}/${EXPECTED_UPLOADS}`,
@@ -420,9 +535,8 @@ async function verifyAssets(client: Client): Promise<void> {
 
   const byHash = new Map(assets.map((asset) => [asset.sha1hash, asset]))
 
-  // El mapa que construye la migración: una entrada por fichero (45), aunque
-  // dos apunten al mismo asset.
-  const assetMap: {filename: string; assetId: string; url: string}[] = []
+  // Una entrada por fichero (45), aunque dos apunten al mismo asset.
+  const assetMap: AssetMapEntry[] = []
   const missing: string[] = []
 
   for (const upload of uploads) {
@@ -440,13 +554,6 @@ async function verifyAssets(client: Client): Promise<void> {
     `no están en el dataset: ${missing.join(', ')}`,
   )
 
-  const distinctIds = new Set(assetMap.map((entry) => entry.assetId))
-  check(
-    distinctIds.size === EXPECTED_ASSET_DOCUMENTS,
-    `documentos sanity.imageAsset distintos tras la deduplicación por sha1: ${distinctIds.size}/${EXPECTED_ASSET_DOCUMENTS}`,
-    `los ${uploads.length} originales apuntan a ${distinctIds.size} assets y se esperaban ${EXPECTED_ASSET_DOCUMENTS}`,
-  )
-
   const filenamesByAsset = new Map<string, string[]>()
   for (const entry of assetMap) {
     const filenames = filenamesByAsset.get(entry.assetId) ?? []
@@ -454,9 +561,23 @@ async function verifyAssets(client: Client): Promise<void> {
     filenamesByAsset.set(entry.assetId, filenames)
   }
 
+  check(
+    filenamesByAsset.size === EXPECTED_ASSET_DOCUMENTS,
+    `documentos sanity.imageAsset distintos tras la deduplicación por sha1: ${filenamesByAsset.size}/${EXPECTED_ASSET_DOCUMENTS}`,
+    `los ${uploads.length} originales apuntan a ${filenamesByAsset.size} assets y se esperaban ${EXPECTED_ASSET_DOCUMENTS}`,
+  )
+
   for (const [assetId, filenames] of filenamesByAsset) {
     if (filenames.length > 1) console.log(`  deduplicado: ${filenames.join(' == ')} -> ${assetId}`)
   }
+
+  return assetMap
+}
+
+async function verifyAssets(client: Client): Promise<void> {
+  console.log('\n5. Assets')
+
+  // --- Lo que solo necesita el dataset: se comprueba siempre. ---
 
   const totalAssets = await client.fetch<number>('count(*[_type == "sanity.imageAsset"])')
   check(
@@ -465,9 +586,32 @@ async function verifyAssets(client: Client): Promise<void> {
     `el dataset tiene ${totalAssets} documentos sanity.imageAsset y se esperaban ${EXPECTED_ASSET_DOCUMENTS}`,
   )
 
-  // HTTP 200 por cada URL del mapa. Se piden las URLs distintas (44 para los
-  // 45 ficheros) y se cuenta sobre las 45 entradas del mapa.
-  const urls = [...new Set(assetMap.map((entry) => entry.url))]
+  const referenced = await readReferencedImages(client)
+  checkReferencedField(referenced, 'icon', 'technology.icon', EXPECTED_COUNTS.technology)
+  checkReferencedField(referenced, 'cover', 'project.cover', EXPECTED_COUNTS.project)
+  checkReferencedField(referenced, 'photo', 'biography.photo', 1)
+
+  const resolvedUrls = referenced
+    .filter((image): image is ReferencedImage & {url: string} => typeof image.url === 'string')
+    .map((image) => image.url)
+  const expectedReferenced = EXPECTED_COUNTS.technology + EXPECTED_COUNTS.project + 1
+  const brokenImages = referenced.filter((image) => typeof image.url !== 'string')
+
+  check(
+    resolvedUrls.length === expectedReferenced,
+    `imágenes referenciadas que resuelven a un asset: ${resolvedUrls.length}/${expectedReferenced}`,
+    `${expectedReferenced - resolvedUrls.length} imágenes referenciadas no resuelven a ningún asset: ${
+      brokenImages.map((image) => `${image.documentId}.${image.field}`).join(', ') || 'ninguna'
+    }`,
+  )
+
+  // --- El cruce con backend/public/uploads: se salta si ya no está. ---
+
+  const assetMap = await verifyAssetMap(client)
+
+  // --- HTTP 200. Cada URL se pide una sola vez, aunque esté en los dos sitios. ---
+
+  const urls = [...new Set([...resolvedUrls, ...(assetMap ?? []).map((entry) => entry.url)])]
   const statusByUrl = new Map<string, number>()
 
   for (const url of urls) {
@@ -480,68 +624,54 @@ async function verifyAssets(client: Client): Promise<void> {
     }
   }
 
-  const okUrls = urls.filter((url) => statusByUrl.get(url) === 200)
-  const okEntries = assetMap.filter((entry) => statusByUrl.get(entry.url) === 200)
-
-  for (const url of urls) {
-    const status = statusByUrl.get(url)
-    if (status !== 200) problems.push(`la imagen ${url} devolvió ${status}`)
+  for (const [url, status] of statusByUrl) {
+    if (status !== 200 && status !== 0) problems.push(`la imagen ${url} devolvió ${status}`)
   }
 
+  const okReferenced = resolvedUrls.filter((url) => statusByUrl.get(url) === 200)
   check(
-    okUrls.length === urls.length,
-    `URLs distintas con HTTP 200: ${okUrls.length}/${urls.length}`,
-    `${urls.length - okUrls.length} URLs de asset no devolvieron 200`,
-  )
-  check(
-    okEntries.length === uploads.length,
-    `entradas del mapa de assets con HTTP 200: ${okEntries.length}/${uploads.length}`,
-    `${uploads.length - okEntries.length} entradas del mapa de assets no devolvieron 200`,
+    okReferenced.length === resolvedUrls.length,
+    `imágenes referenciadas con HTTP 200: ${okReferenced.length}/${resolvedUrls.length}`,
+    `${resolvedUrls.length - okReferenced.length} imágenes referenciadas no devolvieron 200`,
   )
 
-  // Las imágenes que el contenido referencia de verdad: 34 iconos de
-  // technology, 4 portadas de project y la foto de biography.
-  const referenced = await client.fetch<{
-    technologyIcons: (string | null)[]
-    projectCovers: (string | null)[]
-    biographyPhoto: string | null
-  }>(
-    `{
-      "technologyIcons": *[_type == "technology" && !(_id in path("drafts.**"))].icon.asset->url,
-      "projectCovers": *[_type == "project" && !(_id in path("drafts.**"))].cover.asset->url,
-      "biographyPhoto": *[_id == "biography"][0].photo.asset->url
-    }`,
-  )
+  if (assetMap === null) {
+    skip(
+      'las 45 entradas del mapa de assets con HTTP 200',
+      'no hay mapa de assets que recorrer',
+    )
+    skip(
+      'las imágenes referenciadas salen de backend/public/uploads',
+      'no hay mapa de assets con el que cruzarlas',
+    )
+    return
+  }
 
-  const referencedUrls = [
-    ...referenced.technologyIcons,
-    ...referenced.projectCovers,
-    referenced.biographyPhoto,
-  ]
-  const resolvedUrls = referencedUrls.filter((url): url is string => typeof url === 'string')
-  const expectedReferenced = EXPECTED_COUNTS.technology + EXPECTED_COUNTS.project + 1
+  const mapUrls = [...new Set(assetMap.map((entry) => entry.url))]
+  const okMapUrls = mapUrls.filter((url) => statusByUrl.get(url) === 200)
+  const okEntries = assetMap.filter((entry) => statusByUrl.get(entry.url) === 200)
 
   check(
-    referenced.technologyIcons.length === EXPECTED_COUNTS.technology,
-    `technology.icon resueltos: ${referenced.technologyIcons.length}/${EXPECTED_COUNTS.technology}`,
-    `hay ${referenced.technologyIcons.length} iconos de technology y se esperaban ${EXPECTED_COUNTS.technology}`,
+    okMapUrls.length === mapUrls.length,
+    `URLs distintas del mapa con HTTP 200: ${okMapUrls.length}/${mapUrls.length}`,
+    `${mapUrls.length - okMapUrls.length} URLs de asset no devolvieron 200`,
   )
   check(
-    referenced.projectCovers.length === EXPECTED_COUNTS.project,
-    `project.cover resueltos: ${referenced.projectCovers.length}/${EXPECTED_COUNTS.project}`,
-    `hay ${referenced.projectCovers.length} portadas de project y se esperaban ${EXPECTED_COUNTS.project}`,
-  )
-  check(
-    resolvedUrls.length === expectedReferenced,
-    `imágenes referenciadas que resuelven a un asset: ${resolvedUrls.length}/${expectedReferenced}`,
-    `${expectedReferenced - resolvedUrls.length} imágenes referenciadas no resuelven a ningún asset`,
+    okEntries.length === assetMap.length,
+    `entradas del mapa de assets con HTTP 200: ${okEntries.length}/${assetMap.length}`,
+    `${assetMap.length - okEntries.length} entradas del mapa de assets no devolvieron 200`,
   )
 
-  const unknown = resolvedUrls.filter((url) => !statusByUrl.has(url))
+  const knownUrls = new Set(mapUrls)
+  const unknown = referenced.filter(
+    (image) => typeof image.url === 'string' && !knownUrls.has(image.url),
+  )
   check(
     unknown.length === 0,
     `imágenes referenciadas que están en el mapa de assets: ${resolvedUrls.length - unknown.length}/${resolvedUrls.length}`,
-    `${unknown.length} imágenes referenciadas no salen de backend/public/uploads: ${unknown.join(', ')}`,
+    `${unknown.length} imágenes referenciadas no salen de backend/public/uploads: ${unknown
+      .map((image) => `${image.documentId}.${image.field} (${image.url})`)
+      .join(', ')}`,
   )
 }
 
@@ -570,8 +700,22 @@ async function main(): Promise<void> {
   verifyNewlines(documents)
   await verifyAssets(client)
 
+  if (skipped.length > 0) {
+    console.log(`\n${skipped.length} comprobaciones SALTADAS por falta de su fuente de datos:`)
+    for (const entry of skipped) console.log(`  - ${entry}`)
+  }
+
   if (problems.length > 0) {
     throw new Error(`La verificación encontró ${problems.length} problemas:\n  - ${problems.join('\n  - ')}`)
+  }
+
+  if (skipped.length > 0) {
+    // Exit 0: saltarse una comprobación no es un fallo. Pero se dice con todas
+    // las letras, para que nadie lea esta salida como una verificación entera.
+    console.log(
+      `\nCuadra todo lo que se ha podido comprobar, pero ${skipped.length} comprobaciones no se han hecho: NO es una verificación completa.`,
+    )
+    return
   }
 
   console.log('\nTodo cuadra.')
