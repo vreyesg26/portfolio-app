@@ -10,3 +10,4 @@ skills-lock.json
 .superpowers
 .env.local
 .env*.local
+.netlify
