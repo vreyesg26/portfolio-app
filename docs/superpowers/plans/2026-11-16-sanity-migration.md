@@ -508,13 +508,35 @@ está caducado, el pre-vuelo aborta con un 401/403 explícito y **no escribe nad
 Run: `cd backend && pnpm dev` (o `npm run dev`)
 Expected: responde en `http://localhost:1337`
 
-- [ ] **Step 2: Ejecutar la migración**
+- [ ] **Step 2: Ensayo en seco, ANTES de escribir nada**
+
+Run: `cd studio && pnpm tsx scripts/migrate-from-strapi.ts --dry-run`
+Expected: el pre-vuelo cuadra, el script imprime el plan completo y **no sube ningún asset ni
+escribe ningún documento**.
+
+El `--dry-run` no estaba en el plan original; lo añadió el implementador de la tarea 5 y el
+revisor lo valoró como reducción neta de riesgo. Se usa porque las 45 subidas de asset ocurren
+**antes** de que el transform valide los documentos: si una validación fallara en el run real,
+quedarían 45 assets huérfanos. Son inofensivos (aditivos, deduplicados por sha1, y un
+re-lanzamiento los reutiliza), pero el ensayo en seco los evita por completo.
+
+**Tres cosas que mirar en la salida del ensayo**, que el revisor marcó como no verificables
+desde el diff:
+1. Que `status=published`, `populate=*` y `populate[Contact][populate]=*` se comporten como se
+   asume en Strapi 5.50.1 real. Las tres tienen aborto ruidoso, así que un supuesto equivocado
+   para el run, no lo corrompe.
+2. **Las secuencias de `order` de `service`, `project` y `testimonial`**, comparadas a ojo con
+   el sitio en vivo. Salen del índice de la respuesta REST, que la base determina sin
+   `ORDER BY`, así que es el único punto donde el orden no está garantizado por contrato.
+3. Que el recuento de assets sea de 45 subidas y **44** documentos de asset.
+
+- [ ] **Step 3: Ejecutar la migración de verdad**
 
 Run: `cd studio && pnpm tsx scripts/migrate-from-strapi.ts`
 Expected: el pre-vuelo cuadra y el script informa 68 documentos y 45 subidas (44 assets, por
 deduplicación de sha1)
 
-- [ ] **Step 3: Escribir el script de verificación**
+- [ ] **Step 4: Escribir el script de verificación**
 
 Comprueba, vía GROQ contra el dataset real:
 - recuento por tipo, contra la tabla del diseño;
@@ -524,17 +546,17 @@ Comprueba, vía GROQ contra el dataset real:
 - que las 45 URLs del mapa de assets devuelven HTTP 200, apuntando a **44** documentos
   `sanity.imageAsset` distintos.
 
-- [ ] **Step 4: Ejecutar la verificación**
+- [ ] **Step 5: Ejecutar la verificación**
 
 Run: `cd studio && pnpm tsx scripts/verify-migration.ts`
 Expected: todas las comprobaciones en verde; salida distinta de cero si alguna falla
 
-- [ ] **Step 5: Revisar el contenido a ojo en el Studio**
+- [ ] **Step 6: Revisar el contenido a ojo en el Studio**
 
 Run: `cd studio && pnpm dev`
 Expected: los 4 singletons abren directos; las skills salen en el orden curado
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add studio/scripts/verify-migration.ts
