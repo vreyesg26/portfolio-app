@@ -35,7 +35,7 @@ export const Header = () => {
   // Scroll spy: marca como activo el enlace de la sección visible, igual que
   // el portafolio original (assets/js/main.js -> scrollActive). Consultamos las
   // secciones en vivo dentro del handler para que funcione aunque se rendericen
-  // de forma asíncrona (datos de Sanity).
+  // de forma asíncrona (datos de Strapi).
   useEffect(() => {
     const scrollActive = () => {
       const scrollY = window.scrollY;

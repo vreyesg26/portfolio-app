@@ -18,7 +18,7 @@ export type RevealOptions = {
  * origin "top", distance 60px, duration 2500ms, delay 400ms.
  *
  * Cada sección revela sus propios elementos (ver useScrollReveal) una vez
- * que sus datos de Sanity ya se renderizaron en el DOM.
+ * que sus datos de Strapi ya se renderizaron en el DOM.
  */
 export const sr = ScrollReveal({
   origin: "top",

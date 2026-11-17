@@ -19,7 +19,7 @@ type RevealItem = {
 /**
  * Aplica las animaciones de aparición de ScrollReveal cuando `ready` es true,
  * es decir, cuando los elementos objetivo ya existen en el DOM (los datos de
- * Sanity ya se renderizaron).
+ * Strapi ya se renderizaron).
  *
  * En el portafolio original todo el HTML existe al cargar, por lo que un único
  * `sr.reveal(...)` bastaba. Aquí el contenido llega de forma asíncrona, así que

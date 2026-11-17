@@ -48,6 +48,22 @@ describe("secciones sobre Sanity", () => {
     expect(document.querySelectorAll(".skills__data")).toHaveLength(0);
   });
 
+  test("una categoría sin icono no genera ri-null ni ri-undefined", () => {
+    renderWithData(<SkillsSection {...props} />, [
+      [
+        SKILLS_QUERY,
+        [
+          { _id: "c1", title: "NoIcon", slug: "no-icon", icon: null, technologies: [] },
+          { _id: "c2", title: "WithIcon", slug: "with-icon", icon: "code-line", technologies: [] },
+        ],
+      ],
+    ]);
+    expect(screen.getByText("NoIcon")).toBeInTheDocument();
+    expect(document.querySelector(".ri-null")).toBeNull();
+    expect(document.querySelector(".ri-undefined")).toBeNull();
+    expect(document.querySelector(".ri-code-line")).not.toBeNull();
+  });
+
   test("un sectionTitle.key desconocido se ignora y los conocidos siguen", () => {
     renderWithData(<MainContent />, [
       [BIOGRAPHY_QUERY, biography],

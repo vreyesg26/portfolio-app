@@ -36,7 +36,7 @@ describe('queries', () => {
     for (const q of [SECTION_TITLES_QUERY, SERVICES_QUERY, PROJECTS_QUERY, TESTIMONIALS_QUERY]) {
       expect(q).toContain('order(order asc)')
     }
-    // las tecnologías anidadas ordenan explícitamente (antes: orden del join del CMS anterior)
+    // las tecnologías anidadas ordenan explícitamente (antes: orden del join de Strapi)
     expect(SKILLS_QUERY.match(/order\(order asc\)/g)).toHaveLength(2)
   })
 

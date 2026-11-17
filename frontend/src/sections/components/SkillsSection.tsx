@@ -63,7 +63,7 @@ export const SkillsSection = ({ title, subtitle }: SectionProps) => {
           skillsList.map((skills) => (
             <div className="skills__content" key={skills?._id}>
               <h3 className="skills__title">
-                <i className={`ri-${skills.icon}`}></i> {skills?.title}
+                <i className={skills.icon ? `ri-${skills.icon}` : undefined}></i> {skills?.title}
               </h3>
               <div className="skills__info">
                 {skills?.technologies?.map((technologies) => (

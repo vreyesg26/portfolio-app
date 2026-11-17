@@ -14,6 +14,7 @@ import type { UseSanityResult } from "../types/types";
  *   cliente para abortar la petición si el componente se desmonta.
  * - Estados de carga y error (`isPending` / `error`).
  *
+ * Misma firma de salida ({ data, loading, error, refetch }) que useStrapi.
  */
 export function useSanity<T>(query: string): UseSanityResult<T> {
   const { data, isPending, error, refetch } = useQuery({
