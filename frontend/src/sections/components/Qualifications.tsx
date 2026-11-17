@@ -1,8 +1,9 @@
-import type { QualificationTypes, SectionTypes } from "../../types/types";
-import { qualificationsQuery } from "../../utils/constants";
+import type { SectionProps } from "../../types/types";
+import type { QUALIFICATIONS_QUERY_RESULT } from "../../sanity.types";
+import { QUALIFICATIONS_QUERY } from "../../lib/queries";
 import { shapeCircle } from "../../assets";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
-import { useStrapi } from "../../hooks/useStrapi";
+import { useSanity } from "../../hooks/useSanity";
 import { Skeleton } from "./Skeleton";
 import { SectionError } from "./SectionError";
 
@@ -27,9 +28,9 @@ const QualificationSkeleton = () => (
   </>
 );
 
-export const Qualifications = ({ title, subtitle }: SectionTypes) => {
+export const Qualifications = ({ title, subtitle }: SectionProps) => {
   const { data, loading, error, refetch } =
-    useStrapi<QualificationTypes[]>(qualificationsQuery);
+    useSanity<QUALIFICATIONS_QUERY_RESULT>(QUALIFICATIONS_QUERY);
   const qualifications = data ?? [];
 
   useScrollReveal(
@@ -49,14 +50,14 @@ export const Qualifications = ({ title, subtitle }: SectionTypes) => {
           <QualificationSkeleton />
         ) : (
           qualifications?.map((item) => (
-            <div className="qualification__content" key={item?.id}>
+            <div className="qualification__content" key={item?._id}>
               <h3 className="qualification__title">
                 <i className={`ri-${item?.icon}`}></i> {item?.title}
               </h3>
 
               <div className="qualification__info">
                 {item?.qualifications?.map((details) => (
-                  <div key={details?.id}>
+                  <div key={details?._id}>
                     <h3 className="qualification__name">{details?.title}</h3>
 
                     <span className="qualification__country">

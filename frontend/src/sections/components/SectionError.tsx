@@ -6,7 +6,7 @@ type SectionErrorProps = {
 /**
  * Mensaje de error inline para cuando falla la carga de una sección. Incluye un
  * botón "Reintentar" que dispara el refetch de React Query (expuesto por
- * useStrapi).
+ * useSanity).
  */
 export const SectionError = ({
   onRetry,

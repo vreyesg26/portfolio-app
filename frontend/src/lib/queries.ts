@@ -1,7 +1,6 @@
 import { defineQuery } from "groq";
 
-// Queries GROQ del portafolio. Traducen una a una las que antes vivían en
-// utils/constants.ts contra Strapi. Reglas:
+// Queries GROQ del portafolio. Reglas:
 // - Cada query se asigna a una variable con defineQuery() y un nombre único en
 //   todo el proyecto: typegen sobrescribe en silencio los duplicados.
 // - Las imágenes se proyectan como {alt, "asset": asset->{_id, url, mimeType}}:
@@ -35,7 +34,7 @@ export const SECTION_TITLES_QUERY = defineQuery(`
   }
 `);
 
-// Las tecnologías anidadas se ordenan de forma explícita: en Strapi dependían
+// Las tecnologías anidadas se ordenan de forma explícita: en el CMS anterior dependían
 // del orden de la tabla de unión y la migración lo movió al campo `order`.
 export const SKILLS_QUERY = defineQuery(`
   *[_type == "technologyCategory"] | order(order asc){
@@ -52,7 +51,7 @@ export const SKILLS_QUERY = defineQuery(`
   }
 `);
 
-// Tipos ascendente, titulaciones anidadas DESCENDENTE (como en Strapi).
+// Tipos ascendente, titulaciones anidadas DESCENDENTE (como en el CMS anterior).
 export const QUALIFICATIONS_QUERY = defineQuery(`
   *[_type == "qualificationType"] | order(order asc){
     _id,

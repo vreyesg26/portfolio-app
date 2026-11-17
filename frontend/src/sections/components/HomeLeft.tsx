@@ -1,10 +1,16 @@
-import type { HomeTypes } from "../../types/types";
+import type { BIOGRAPHY_QUERY_RESULT } from "../../sanity.types";
 
-export const HomeLeft = ({ homeData }: HomeTypes) => {
+type HomeProps = {
+  homeData: NonNullable<
+    NonNullable<BIOGRAPHY_QUERY_RESULT>["homeLeft"]
+  >;
+};
+
+export const HomeLeft = ({ homeData }: HomeProps) => {
   return (
     <div className="home__info">
       {homeData?.map((bio) => (
-        <div key={bio?.id}>
+        <div key={bio?._key}>
           <h3 className="home__info-title">{bio?.title}</h3>
           <p className="home__info-description">{bio?.description}</p>
         </div>

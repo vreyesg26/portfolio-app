@@ -1,7 +1,8 @@
-import type { SectionTypes, ServicesTypes } from "../../types/types";
-import { servicesQuery } from "../../utils/constants";
+import type { SectionProps } from "../../types/types";
+import type { SERVICES_QUERY_RESULT } from "../../sanity.types";
+import { SERVICES_QUERY } from "../../lib/queries";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
-import { useStrapi } from "../../hooks/useStrapi";
+import { useSanity } from "../../hooks/useSanity";
 import { SectionError } from "./SectionError";
 
 const ServicesSkeleton = () => (
@@ -12,9 +13,9 @@ const ServicesSkeleton = () => (
   </>
 );
 
-export const Services = ({ title, subtitle }: SectionTypes) => {
+export const Services = ({ title, subtitle }: SectionProps) => {
   const { data, loading, error, refetch } =
-    useStrapi<ServicesTypes[]>(servicesQuery);
+    useSanity<SERVICES_QUERY_RESULT>(SERVICES_QUERY);
   const services = data ?? [];
 
   useScrollReveal(
@@ -33,7 +34,7 @@ export const Services = ({ title, subtitle }: SectionTypes) => {
           <ServicesSkeleton />
         ) : (
           services?.map((service) => (
-            <div className="services__card" key={service?.id}>
+            <div className="services__card" key={service?._id}>
               <i className={`ri-${service?.icon}`}></i>
 
               <h2 className="services__title">{service?.title}</h2>

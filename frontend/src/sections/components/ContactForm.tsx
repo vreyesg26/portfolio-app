@@ -1,7 +1,8 @@
-import type { ContactTypes, SectionTypes } from "../../types/types";
-import { contactFormQuery } from "../../utils/constants";
+import type { SectionProps } from "../../types/types";
+import type { CONTACT_QUERY_RESULT } from "../../sanity.types";
+import { CONTACT_QUERY } from "../../lib/queries";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
-import { useStrapi } from "../../hooks/useStrapi";
+import { useSanity } from "../../hooks/useSanity";
 import { Skeleton } from "./Skeleton";
 import { SectionError } from "./SectionError";
 
@@ -23,9 +24,9 @@ const ContactSkeleton = () => (
   </>
 );
 
-export const ContactForm = ({ title, subtitle }: SectionTypes) => {
+export const ContactForm = ({ title, subtitle }: SectionProps) => {
   const { data: contactFormData, loading, error, refetch } =
-    useStrapi<ContactTypes>(contactFormQuery);
+    useSanity<CONTACT_QUERY_RESULT>(CONTACT_QUERY);
 
   useScrollReveal(
     [
@@ -49,13 +50,13 @@ export const ContactForm = ({ title, subtitle }: SectionTypes) => {
           <>
             <div className="contact__content">
               <h3 className="contact__title">
-                <i className={`ri-${contactFormData?.Contact[0]?.icon}`} />
-                {contactFormData?.Contact[0]?.title}
+                <i className={`ri-${contactFormData?.talkToMe?.icon}`} />
+                {contactFormData?.talkToMe?.title}
               </h3>
 
               <div className="contact__info">
-                {contactFormData?.Contact[0]?.ContactInfo?.map((item) => (
-                  <div className="contact__data" key={item?.id}>
+                {contactFormData?.talkToMe?.contactInfo?.map((item) => (
+                  <div className="contact__data" key={item?._key}>
                     <span className="contact__data-title">{item?.label}</span>
                     <span className="contact__data-info">{item?.value}</span>
                     {item?.url ? (
@@ -74,14 +75,14 @@ export const ContactForm = ({ title, subtitle }: SectionTypes) => {
 
             <div className="contact__content">
               <h3 className="contact__title">
-                <i className={`ri-${contactFormData?.Contact[1]?.icon}`} />
-                {contactFormData?.Contact[1]?.title}
+                <i className={`ri-${contactFormData?.writeMe?.icon}`} />
+                {contactFormData?.writeMe?.title}
               </h3>
 
               <form action="" className="contact__form" id="contact-form">
-                {contactFormData?.Contact[1]?.ContactForm?.map((formInputs) => (
+                {contactFormData?.writeMe?.fields?.map((formInputs) => (
                   <div
-                    key={formInputs?.id}
+                    key={formInputs?._key}
                     className={`contact__form-div ${
                       formInputs?.longText ? "contact__form-area" : ""
                     }`}
@@ -91,7 +92,7 @@ export const ContactForm = ({ title, subtitle }: SectionTypes) => {
                     </label>
                     {!formInputs?.longText ? (
                       <input
-                        type={formInputs?.type}
+                        type={formInputs?.inputType}
                         name={formInputs?.name}
                         required
                         placeholder={formInputs?.placeholder}

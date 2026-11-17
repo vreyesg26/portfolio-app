@@ -1,10 +1,11 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
-import type { ProjectsTypes, SectionTypes } from "../../types/types";
-import { getStrapiImages } from "../../lib/strapi";
-import { projectsQuery } from "../../utils/constants";
+import type { SectionProps } from "../../types/types";
+import type { PROJECTS_QUERY_RESULT } from "../../sanity.types";
+import { imageAlt, imageUrl } from "../../lib/image";
+import { PROJECTS_QUERY } from "../../lib/queries";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
-import { useStrapi } from "../../hooks/useStrapi";
+import { useSanity } from "../../hooks/useSanity";
 import { Skeleton } from "./Skeleton";
 import { SectionError } from "./SectionError";
 
@@ -19,9 +20,9 @@ const ProjectsSkeleton = () => (
   </div>
 );
 
-export const Projects = ({ title, subtitle }: SectionTypes) => {
+export const Projects = ({ title, subtitle }: SectionProps) => {
   const { data, loading, error, refetch } =
-    useStrapi<ProjectsTypes[]>(projectsQuery);
+    useSanity<PROJECTS_QUERY_RESULT>(PROJECTS_QUERY);
   const projects = data ?? [];
 
   useScrollReveal([{ target: ".projects__container" }], projects.length > 0);
@@ -58,10 +59,10 @@ export const Projects = ({ title, subtitle }: SectionTypes) => {
             }}
           >
             {projects?.map((project) => (
-              <SwiperSlide className="projects__content" key={project?.id}>
+              <SwiperSlide className="projects__content" key={project?._id}>
                 <img
-                  src={getStrapiImages(project?.cover?.url)}
-                  alt={project?.name}
+                  src={imageUrl(project?.cover)}
+                  alt={imageAlt(project?.cover, project?.name)}
                   className="projects__img"
                 />
                 <div>

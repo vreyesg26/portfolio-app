@@ -36,11 +36,11 @@ describe('queries', () => {
     for (const q of [SECTION_TITLES_QUERY, SERVICES_QUERY, PROJECTS_QUERY, TESTIMONIALS_QUERY]) {
       expect(q).toContain('order(order asc)')
     }
-    // las tecnologías anidadas ordenan explícitamente (antes: orden del join de Strapi)
+    // las tecnologías anidadas ordenan explícitamente (antes: orden del join del CMS anterior)
     expect(SKILLS_QUERY.match(/order\(order asc\)/g)).toHaveLength(2)
   })
 
-  test('las titulaciones anidadas van en orden descendente, como en Strapi', () => {
+  test('las titulaciones anidadas van en orden descendente, como en el CMS anterior', () => {
     expect(QUALIFICATIONS_QUERY).toContain('order(order desc)')
     expect(QUALIFICATIONS_QUERY).toContain('order(order asc)')
     expect(QUALIFICATIONS_QUERY.indexOf('order(order asc)')).toBeLessThan(

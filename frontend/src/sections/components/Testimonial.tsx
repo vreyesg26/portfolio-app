@@ -1,10 +1,11 @@
-import { testimonialsQuery } from "../../utils/constants";
-import type { SectionTypes, TestimonialsTypes } from "../../types/types";
+import { TESTIMONIALS_QUERY } from "../../lib/queries";
+import type { SectionProps } from "../../types/types";
+import type { TESTIMONIALS_QUERY_RESULT } from "../../sanity.types";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { shapeWaves } from "../../assets";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
-import { useStrapi } from "../../hooks/useStrapi";
+import { useSanity } from "../../hooks/useSanity";
 import { Skeleton } from "./Skeleton";
 import { SectionError } from "./SectionError";
 
@@ -21,9 +22,9 @@ const TestimonialSkeleton = () => (
   </div>
 );
 
-export const Testimonial = ({ title, subtitle }: SectionTypes) => {
+export const Testimonial = ({ title, subtitle }: SectionProps) => {
   const { data, loading, error, refetch } =
-    useStrapi<TestimonialsTypes[]>(testimonialsQuery);
+    useSanity<TESTIMONIALS_QUERY_RESULT>(TESTIMONIALS_QUERY);
   const testimonials = data ?? [];
 
   useScrollReveal(
@@ -55,7 +56,7 @@ export const Testimonial = ({ title, subtitle }: SectionTypes) => {
               {testimonials?.map((testimonial) => (
                 <SwiperSlide
                   className="testimonial__content"
-                  key={testimonial?.id}
+                  key={testimonial?._id}
                 >
                   <p className="testimonial__description">
                     "{testimonial?.description}"
