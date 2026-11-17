@@ -37,7 +37,10 @@ React Testing Library (nuevos); Netlify para el frontend.
 - `useSanity` mantiene la firma de salida `{ data, loading, error, refetch }`.
 - CORS, ambos con `--no-credentials`: `http://localhost:5173` y `https://vgdeveloper.dev`.
 - Hostname del Studio: `vgdeveloper`; alternativa si está tomado: `victor-reyes-portfolio`.
-- Objetivo de migración: **68 documentos + 45 assets**. `_id` deterministas.
+- Objetivo de migración: **68 documentos + 45 subidas de asset**, que producen **44
+  documentos `sanity.imageAsset`**: `project1_1b9650e9c9.jpg` y `project1_f2b31920e8.jpg` son
+  byte a byte idénticos (sha1 `db6182b0e67e…`) y Sanity deduplica por sha1. El mapa
+  `URL → assetId` sí tiene 45 entradas, dos de ellas al mismo asset. `_id` deterministas.
 - **No se toca `frontend/src/index.css`** ni ninguna clase CSS.
 - Se conservan `DARK_THEME_CLASS`, `ICON_THEME_CLASS` y `getInitialIsDark` de
   `frontend/src/utils/constants.ts`.
@@ -461,11 +464,14 @@ Expected: PASS (4 tests)
 Orden de operaciones, según el diseño:
 1. **Pre-vuelo:** contar lo publicado en Strapi por tipo y comparar con la tabla del diseño
    (68 documentos). Abortar sin escribir nada si no cuadra.
-2. **Assets:** subir los 45 originales de `backend/public/uploads`, ignorando las variantes
-   `large_`/`small_`/`thumbnail_`, arrastrando `alternativeText`. Construir el mapa
-   `URL de Strapi → assetId`.
-3. **Orden:** `readTechnologyOrder` para `technology`; secuencia de `id` de Strapi para
-   `service`, `project` y `testimonial`.
+2. **Assets:** subir los 45 originales de `backend/public/uploads`, ignorando las **cuatro**
+   familias de variantes que genera Strapi: `large_`, `small_`, `thumbnail_` y **`medium_`**.
+   Verificado: excluyendo solo las tres primeras quedan 47 archivos; con `medium_` quedan
+   exactamente 45, que es lo que dice la tabla `files`. Arrastra `alternativeText` y construye
+   el mapa `URL de Strapi → assetId`.
+3. **Orden:** `readTechnologyOrder` para `technology`; para `service`, `project` y
+   `testimonial`, el **índice de la respuesta REST sin parámetro de sort**, que es literalmente
+   lo que el sitio muestra hoy. No derivarlo de los `id` numéricos: mezclan borradores.
 4. **Dos pasadas:** primero los documentos sin referencias, luego los que referencian.
 5. `biography` solo con `locale=en`.
 
@@ -490,7 +496,12 @@ de la migración aun aprobando el script.
 
 **Interfaces:**
 - Consumes: el script de la tarea 5
-- Produces: el dataset `production` poblado: 68 documentos + 45 assets
+- Produces: el dataset `production` poblado: 68 documentos, 45 subidas → 44 assets
+
+**La API REST de Strapi exige token.** Verificado en `up_permissions`: el rol Público tiene
+**0** permisos `find`, así que una petición sin credenciales devuelve 403. El script usa
+`STRAPI_API_TOKEN` y, si no está, cae a `VITE_STRAPI_TOKEN` de `frontend/.env`. Si ese token
+está caducado, el pre-vuelo aborta con un 401/403 explícito y **no escribe nada**.
 
 - [ ] **Step 1: Arrancar Strapi en local**
 
@@ -500,7 +511,8 @@ Expected: responde en `http://localhost:1337`
 - [ ] **Step 2: Ejecutar la migración**
 
 Run: `cd studio && pnpm tsx scripts/migrate-from-strapi.ts`
-Expected: el pre-vuelo cuadra y el script termina informando 68 documentos y 45 assets
+Expected: el pre-vuelo cuadra y el script informa 68 documentos y 45 subidas (44 assets, por
+deduplicación de sha1)
 
 - [ ] **Step 3: Escribir el script de verificación**
 
@@ -509,7 +521,8 @@ Comprueba, vía GROQ contra el dataset real:
 - que las 2 referencias resuelven en los 40 documentos que las usan;
 - que las 34 tecnologías tienen `order` y que el orden coincide con `technologie_ord`;
 - que `biography.presentation` y los 2 `service.title` afectados **contienen `\n`**;
-- que las 45 URLs de asset devuelven HTTP 200.
+- que las 45 URLs del mapa de assets devuelven HTTP 200, apuntando a **44** documentos
+  `sanity.imageAsset` distintos.
 
 - [ ] **Step 4: Ejecutar la verificación**
 
