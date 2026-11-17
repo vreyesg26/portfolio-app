@@ -177,7 +177,10 @@ Expected: `studio/.env.local` existe y está ignorado por git
 - [ ] **Step 5: Andamiar `studio/` con pnpm**
 
 `sanity` y `@sanity/vision` como dependencias; scripts `dev`, `build`, `deploy` y
-`typegen` (`sanity schema extract --force --enforce-required-fields && sanity typegen generate`).
+`typegen` (`sanity schemas extract --force --enforce-required-fields && sanity typegen generate`).
+**`schemas` en plural**: verificado empíricamente en sanity 6.23.0, es la forma canónica
+que da el texto de ayuda. La documentación vigente usa ambas y la primera versión de este
+plan decía `schema`, en singular.
 `studio/.gitignore` debe ignorar `.env.local`, `node_modules`, `dist` y `schema.json`.
 
 - [ ] **Step 6: Escribir `sanity.cli.ts` con la configuración de typegen**
